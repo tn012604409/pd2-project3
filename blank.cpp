@@ -9,6 +9,7 @@ Blank::Blank(int R,int C, QWidget *parent):row(R),colum(C), QObject(parent)
     connect(buttom,SIGNAL(clicked()),this,SLOT(click()));//接收訊號，this指的是Blank，指到Blank.h裡的void click()，在指到.cpp裡的click()
     shift=1;
     time=new QTimer();
+
 }
 
 void Blank::setNumber()

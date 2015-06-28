@@ -3,6 +3,11 @@
 #include <QPushButton>
 #include <QObject>
 #include <QTimer>
+#include <cstdlib>
+#include <ctime>
+#include <QDebug>
+#include <QKeyEvent>
+#include <QString>
 class Blank:public QObject
 {
     Q_OBJECT//copy QObject的function??

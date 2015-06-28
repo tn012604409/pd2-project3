@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <ctime>
 #include <cstdlib>
+#include <QDebug>
+#include <QString>
 namespace Ui {
 class MainWindow;
 }
@@ -30,12 +32,19 @@ public:
     bool JudgeThreeCol(int row, int col);
     bool JudgeThreeRow(int row, int col);
     bool TotalJudge();
+    QString str;
+    int score;
+    int level;
+    int level2;
+    int level3;
+
+
 
 
 
 private:
     Ui::MainWindow *ui;
-    Blank *b[10][10];   //10*10的button??嗚嗚Blank是甚麼意思
+    Blank *b[10][10];   //10*10的button
 public slots:
     void button_clicked(int R,int C);
     void zeroVanish();

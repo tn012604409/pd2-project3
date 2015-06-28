@@ -9,12 +9,18 @@
 #include <QDebug>
 #include"threecol.h"
 #include"threerow.h"
+#include <QString>
+#include <ctime>
+#include <cstdlib>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    srand(time(NULL));
+    /*score=0;
+    str=QString::number(score,10);
+    ui->score->setText(str);
+    srand(time(NULL));*/
     ui->setupUi(this);
     for(int i=0;i<10;i++)
         for(int j=0;j<10;j++){
@@ -22,6 +28,12 @@ MainWindow::MainWindow(QWidget *parent) :
             connect(b[i][j],SIGNAL(Click(int,int)),this,SLOT(button_clicked(int,int)));
             connect(b[i][j],SIGNAL(movedone()),this,SLOT(zeroVanish()));//this是mainwindow接收
         }
+    score=0;
+    level=1;
+    level2=2;
+    level3=3;
+    str=QString::number(score,10);
+    ui->score->setText(QString("%1").arg(score));
     gamestart();
 }
 void MainWindow::gamestart(){
@@ -39,7 +51,23 @@ void MainWindow::gamestart(){
 
 void MainWindow::setClickPicture(Blank *b)
 {
-    if(!isClicked){
+    if(!isClicked){ ui->score->setText(QString("%1").arg(level));
+        if(score>20){
+            ui->star1->setText(QString("%1").arg(level));
+
+        }
+        if(score>30){
+            ui->star2->setText(QString("%1").arg(level2));
+
+        }
+        if(score>40){
+            ui->star3->setText(QString("%1").arg(level3));
+
+        }
+        if(score>40){
+
+            ui->win->setPixmap(QPixmap(":/pic/win.png"));
+        }
         switch(b->number){
         case 10:
             b->buttom->setIcon(QIcon(QPixmap(":/pic/red_choose.png")));b->buttom->setIconSize(b->buttom->size());break;
@@ -84,6 +112,7 @@ void MainWindow::setClickPicture(Blank *b)
 
 bool MainWindow::Judge(int row1, int col1, int row2, int col2)
 {
+    ui->score->setText(QString("%1").arg(score));
     bool A[12]={0};
     A[0]=JudgeStar(row1,col1);
     A[1]=JudgeStar(row2,col2);
@@ -97,6 +126,7 @@ bool MainWindow::Judge(int row1, int col1, int row2, int col2)
     A[9]=JudgeThreeRow(row2,col2);
     A[10]=JudgeThreeCol(row1,col1);
     A[11]=JudgeThreeCol(row2,col2);
+    setboard();
     /*for(int i=0;i<12;i++){
         if(A[i]==true){
             while(1){
@@ -123,8 +153,24 @@ bool MainWindow::Judge(int row1, int col1, int row2, int col2)
             }
         return true;
         }
-    }qDebug()<<"LLLL";
+    }
     return false;*/
+    for(int i=9; i>=0; i--){
+        for(int j=9; j>=0; j--){
+            if(b[i][j]->number==0){
+                b[i][j]->setNumber();
+                b[i][j]->setButtonPicture();
+                if(j>=2&&b[i][j]->number==b[i][j-2]->number&&b[i][j]->number==b[i][j-1]->number)
+                    j++;//left
+                else if(j<=7&&b[i][j]->number==b[i][j+1]->number&&b[i][j]->number==b[i][j+2]->number)
+                    j++;//right
+                else if(j>=1&&j<=8&&b[i][j]->number==b[i][j-1]->number&&b[i][j]->number==b[i][j+1]->number)
+                    j++;//middle
+                else if(i<=7&&b[i][j]->number==b[i+2][j]->number&&b[i][j]->number==b[i+1][j]->number)
+                    j++;//down
+            }
+        }
+    }
 
 }
 void MainWindow::setboard()//我是重新整理的function
@@ -163,7 +209,7 @@ bool MainWindow::JudgeStar(int row, int col)
 {
     int return_value;
     bool Any_spawn=false;//有沒有生成星星
-    Destroy *d=new star;//為何知道是誰的function，是因為指到star嗎??
+    Destroy *d=new star;
     return_value=d->condition(b,b[row][col]);//知道要消去的狀況
     qDebug()<<"STAR"<<return_value;
     if(return_value){
@@ -171,6 +217,7 @@ bool MainWindow::JudgeStar(int row, int col)
         case 1:
             d->spawn(b,b[row][col],1);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -178,6 +225,7 @@ bool MainWindow::JudgeStar(int row, int col)
         case 2:
             d->spawn(b,b[row][col],2);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -185,18 +233,7 @@ bool MainWindow::JudgeStar(int row, int col)
         }
     }
     delete d;
-    /*return_value=star::condition(b,b[row][col]);
-    if(return_value){
-        switch (return_value) {
-        case 1:
-            star::spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
-            break;
-        case 2:
-            star::spawn(b,b[row][col],2);
-            Any_spawn=true;
-            break;
-        }*/
+    //score+=5;
     return Any_spawn;
 
 }
@@ -212,15 +249,16 @@ void MainWindow::reNewPicture()
 bool MainWindow::JudgeVertical(int row, int col)
 {
     int return_value;
-    bool Any_spawn=false;//有沒有生成星星
-    Destroy *t=new vertical ;//為何知道是誰的function，是因為指到star嗎??
+    bool Any_spawn=false;
+    Destroy *t=new vertical ;
     return_value=t->condition(b,b[row][col]);//知道要消去的狀況
     qDebug()<<"Ver"<<return_value;
     if(return_value){
         switch (return_value) {
         case 1:
-            t->spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],1);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -228,13 +266,15 @@ bool MainWindow::JudgeVertical(int row, int col)
         case 2:
             t->spawn(b,b[row][col],2);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 3:
-            t->spawn(b,b[row][col],3);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],3);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -242,13 +282,15 @@ bool MainWindow::JudgeVertical(int row, int col)
         case 4:
             t->spawn(b,b[row][col],4);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 5:
-            t->spawn(b,b[row][col],5);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],5);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -256,13 +298,15 @@ bool MainWindow::JudgeVertical(int row, int col)
         case 6:
             t->spawn(b,b[row][col],6);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 7:
-            t->spawn(b,b[row][col],7);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],7);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -270,6 +314,7 @@ bool MainWindow::JudgeVertical(int row, int col)
         case 8:
             t->spawn(b,b[row][col],8);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -277,21 +322,23 @@ bool MainWindow::JudgeVertical(int row, int col)
         }
     }
     delete t;
+    //score+=4;
     return Any_spawn;
 }
 
 bool MainWindow::JudgeHorizontal(int row, int col)
 {
     int return_value;
-    bool Any_spawn=false;//有沒有生成星星
-    Destroy *t=new horizontal ;//為何知道是誰的function，是因為指到star嗎??
-    return_value=t->condition(b,b[row][col]);//知道要消去的狀況
+    bool Any_spawn=false;
+    Destroy *t=new horizontal ;
+    return_value=t->condition(b,b[row][col]);
     qDebug()<<"Hor"<<return_value;
     if(return_value){
         switch (return_value) {
         case 1:
-            t->spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],1);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -299,13 +346,15 @@ bool MainWindow::JudgeHorizontal(int row, int col)
         case 2:
             t->spawn(b,b[row][col],2);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 3:
-            t->spawn(b,b[row][col],3);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],3);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -313,13 +362,15 @@ bool MainWindow::JudgeHorizontal(int row, int col)
         case 4:
             t->spawn(b,b[row][col],4);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 5:
-            t->spawn(b,b[row][col],5);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],5);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -327,13 +378,15 @@ bool MainWindow::JudgeHorizontal(int row, int col)
         case 6:
             t->spawn(b,b[row][col],6);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 7:
-            t->spawn(b,b[row][col],7);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],7);
+            Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -341,6 +394,7 @@ bool MainWindow::JudgeHorizontal(int row, int col)
         case 8:
             t->spawn(b,b[row][col],8);
             Any_spawn=true;
+            score+=4;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -348,6 +402,7 @@ bool MainWindow::JudgeHorizontal(int row, int col)
         }
     }
     delete t;
+    //score+=4;
     return Any_spawn;
 
 }
@@ -355,15 +410,16 @@ bool MainWindow::JudgeHorizontal(int row, int col)
 bool MainWindow::JudgeNine(int row, int col)
 {
     int return_value;
-    bool Any_spawn=false;//有沒有生成星星
-    Destroy *t=new nineblock ;//為何知道是誰的function，是因為指到star嗎??
-    return_value=t->condition(b,b[row][col]);//知道要消去的狀況
+    bool Any_spawn=false;
+    Destroy *t=new nineblock ;
+    return_value=t->condition(b,b[row][col]);
     qDebug()<<"nine"<<return_value;
     if(return_value){
         switch (return_value) {
         case 1:
-            t->spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],1);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -371,13 +427,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 2:
             t->spawn(b,b[row][col],2);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 3:
-            t->spawn(b,b[row][col],3);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],3);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -385,13 +443,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 4:
             t->spawn(b,b[row][col],4);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 5:
-            t->spawn(b,b[row][col],5);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],5);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -399,13 +459,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 6:
             t->spawn(b,b[row][col],6);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 7:
-            t->spawn(b,b[row][col],7);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],7);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -413,13 +475,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 8:
             t->spawn(b,b[row][col],8);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 9:
-            t->spawn(b,b[row][col],9);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],9);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -427,13 +491,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 10:
             t->spawn(b,b[row][col],10);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 11:
-            t->spawn(b,b[row][col],11);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],11);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -441,13 +507,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 12:
             t->spawn(b,b[row][col],12);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 13:
-            t->spawn(b,b[row][col],13);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],13);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -455,13 +523,15 @@ bool MainWindow::JudgeNine(int row, int col)
         case 14:
             t->spawn(b,b[row][col],14);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 15:
-            t->spawn(b,b[row][col],15);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],15);
+            Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -469,6 +539,7 @@ bool MainWindow::JudgeNine(int row, int col)
         case 16:
             t->spawn(b,b[row][col],16);
             Any_spawn=true;
+            score+=5;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -476,21 +547,23 @@ bool MainWindow::JudgeNine(int row, int col)
         }
     }
     delete t;
+
     return Any_spawn;
 }
 
 bool MainWindow::JudgeThreeCol(int row, int col)
 {
     int return_value;
-    bool Any_spawn=false;//有沒有生成星星
-    Destroy *t=new threecol ;//為何知道是誰的function，是因為指到star嗎??
+    bool Any_spawn=false;
+    Destroy *t=new threecol ;
     return_value=t->condition(b,b[row][col]);//知道要消去的狀況
     qDebug()<<"Threecol"<<return_value;
     if(return_value){
         switch (return_value) {
         case 1:
-            t->spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],1);
+            Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -498,6 +571,7 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 2:
             t->spawn(b,b[row][col],2);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -505,6 +579,7 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 3:
             t->spawn(b,b[row][col],3);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -512,10 +587,12 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 4:
             t->spawn(b,b[row][col],4);
             Any_spawn=true;
+            score+=3;
             break;
         case 5:
             t->spawn(b,b[row][col],5);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -523,13 +600,15 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 6:
             t->spawn(b,b[row][col],6);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 7:
-            t->spawn(b,b[row][col],7);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],7);
+            Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -537,13 +616,15 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 8:
             t->spawn(b,b[row][col],8);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 9:
-            t->spawn(b,b[row][col],9);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],9);
+            Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -551,13 +632,15 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 10:
             t->spawn(b,b[row][col],10);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 11:
-            t->spawn(b,b[row][col],11);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],11);
+            Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -565,6 +648,7 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         case 12:
             t->spawn(b,b[row][col],12);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -572,21 +656,24 @@ bool MainWindow::JudgeThreeCol(int row, int col)
         }
     }
     delete t;
+    //score+=3;
     return Any_spawn;
 }
 
 bool MainWindow::JudgeThreeRow(int row, int col)
 {
     int return_value;
-    bool Any_spawn=false;//有沒有生成星星
-    Destroy *t=new threerow ;//為何知道是誰的function，是因為指到star嗎??
+    bool Any_spawn=false;
+    Destroy *t=new threerow ;
     return_value=t->condition(b,b[row][col]);//知道要消去的狀況
     qDebug()<<"threeRow"<<return_value;
     if(return_value){
         switch (return_value) {
         case 1:
-            t->spawn(b,b[row][col],1);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],1);
+            Any_spawn=true;
+
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -594,13 +681,15 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 2:
             t->spawn(b,b[row][col],2);
             Any_spawn=true;
+           score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
             break;
         case 3:
-            t->spawn(b,b[row][col],3);//指到star裡的spawn
-            Any_spawn=true;//生成星星了
+            t->spawn(b,b[row][col],3);
+            Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -608,6 +697,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 4:
             t->spawn(b,b[row][col],4);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -615,6 +705,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 5:
             t->spawn(b,b[row][col],5);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -622,6 +713,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 6:
             t->spawn(b,b[row][col],6);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -629,6 +721,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 7:
             t->spawn(b,b[row][col],7);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -636,6 +729,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 8:
             t->spawn(b,b[row][col],8);
             Any_spawn=true;
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -643,6 +737,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 9:
             t->spawn(b,b[row][col],9);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -650,6 +745,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 10:
             t->spawn(b,b[row][col],10);
             Any_spawn=true;
+           score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -657,6 +753,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 11:
             t->spawn(b,b[row][col],11);//指到star裡的spawn
             Any_spawn=true;//生成星星了
+            score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -664,6 +761,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         case 12:
             t->spawn(b,b[row][col],12);
             Any_spawn=true;
+           score+=3;
             for(int i=0;i<10;i++){
                     qDebug()<<(b[i][0]->number)<<(b[i][1]->number)<<(b[i][2]->number)<<(b[i][3]->number)<<(b[i][4]->number)<<(b[i][5]->number)<<(b[i][6]->number)<<(b[i][7]->number)<<(b[i][8]->number)<<(b[i][9]->number);
                 }
@@ -671,6 +769,7 @@ bool MainWindow::JudgeThreeRow(int row, int col)
         }
     }
     delete t;
+    //score+=3;
     return Any_spawn;
 }
 
@@ -700,7 +799,7 @@ bool MainWindow::TotalJudge()
                        return true;
                }
            }
-           /*for(int i=0;i<10;i++){
+           for(int i=0;i<10;i++){
                for(int j=0;j<10;j++){
                    if(JudgeThreeCol(i,j))
                        return true;
@@ -711,7 +810,7 @@ bool MainWindow::TotalJudge()
                    if(JudgeThreeRow(i,j))
                        return true;
                }
-           }*/
+           }
            return false;
 }
 

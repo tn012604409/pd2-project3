@@ -34,5 +34,6 @@
         <file>yellow_colum_choose.png</file>
         <file>yellow_row.png</file>
         <file>yellow_row_choose.png</file>
+        <file>win.png</file>
     </qresource>
 </RCC>
