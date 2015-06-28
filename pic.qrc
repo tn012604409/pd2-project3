@@ -1,0 +1,38 @@
+<RCC>
+    <qresource prefix="/pic">
+        <file>blue.png</file>
+        <file>blue_bumb.png</file>
+        <file>blue_bumb_choose.png</file>
+        <file>blue_choose.png</file>
+        <file>blue_colum.png</file>
+        <file>blue_colum_choose.png</file>
+        <file>blue_row.png</file>
+        <file>blue_row_choose.png</file>
+        <file>green.png</file>
+        <file>green_bumb.png</file>
+        <file>green_bumb_choose.png</file>
+        <file>green_choose.png</file>
+        <file>green_colum.png</file>
+        <file>green_colum_choose.png</file>
+        <file>green_row.png</file>
+        <file>green_row_choose.png</file>
+        <file>red.png</file>
+        <file>red_bumb.png</file>
+        <file>red_bumb_choose.png</file>
+        <file>red_choose.png</file>
+        <file>red_colum.png</file>
+        <file>red_colum_choose.png</file>
+        <file>red_row.png</file>
+        <file>red_row_choose.png</file>
+        <file>star.png</file>
+        <file>star_choose.png</file>
+        <file>yellow.png</file>
+        <file>yellow_bumb.png</file>
+        <file>yellow_bumb_choose.png</file>
+        <file>yellow_choose.png</file>
+        <file>yellow_colum.png</file>
+        <file>yellow_colum_choose.png</file>
+        <file>yellow_row.png</file>
+        <file>yellow_row_choose.png</file>
+    </qresource>
+</RCC>
